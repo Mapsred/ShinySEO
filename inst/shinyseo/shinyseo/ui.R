@@ -12,23 +12,39 @@ fluidPage(
     tabsetPanel(
       tabPanel("Recherche journalière",
                fluidPage(
-                 titlePanel("Data Analystic"),
+                 titlePanel("Data Analystic - Recherche journalière"),
                  textInput(inputId = "titre", label = "URL à chercher"),
                  textAreaInput(inputId = "keywords_input", label = "Sur quel mot clef voulez-vous chercher le site ? Une expression par ligne"),
                  tableOutput("keywords_list"),
                  textOutput("display"),
-                 actionButton(inputId = "go", "Envoyer")
+                 actionButton(inputId = "go", "Envoyer"),
+                 hr()
                )),
-      tabPanel("Summary"),
-      tabPanel("Table")
+      tabPanel("Sommaire",
+               fluidPage(
+                 titlePanel("Data Analystic - Sommaire"),
+                 h3("Évolution d'un mot clé"),
+                 textInput(inputId = "summaryUrl", label = "URL à chercher", value = "www.thinkr.fr"),
+                 textInput(inputId = "summaryWord", label = "Mot clé à chercher", value = "apprendre R"),
+                 tableOutput("zone"),
+                 actionButton(inputId = "summarySend", "Envoyer"),
+                 hr(),
+                 htmlOutput("titleSummary"),
+                 htmlOutput("summaryTableTitle"),
+                 htmlOutput("bestPosSummary"),
+                 dataTableOutput("summaryTable"),
+                 hr(),
+                 htmlOutput("historyGlobalTitle"),
+                 dataTableOutput("summaryGlobalDataTable")
+               )),
+      tabPanel("Historique",
+               fluidPage(
+                 titlePanel("Data Analystic - Historique"),
+                 h3("Sites recherchés"),
+                 tableOutput("urlHistory")
+               ))
     )
-  ),
-
-
-
-
-  textOutput("zone")
-
+  )
 )
 
 
