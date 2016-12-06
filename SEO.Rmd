@@ -1,0 +1,610 @@
+---
+title: "RÃ©aliser des applications RShiny interactives"
+date: "`r Sys.Date()`"
+output:
+  rmdformats::readthedown:
+    self_contained: true
+    highlight: kate
+runtime: shiny
+---
+
+
+```{r knitr_init, echo=FALSE, cache=FALSE}
+library(knitr)
+library(rmdformats)
+
+## Global options
+options(max.print="75")
+opts_chunk$set(echo=TRUE,
+	             cache=TRUE,
+               prompt=FALSE,
+               tidy=TRUE,
+               comment=NA,
+               message=FALSE,
+               warning=FALSE)
+opts_knit$set(width=75)
+```
+
+
+# Qu'est-ce qu'une application Shiny ? 
+
+![](rstudio-hex-shiny-dot-psd.png)
+
+Shiny est un framework d'*applications web* pour R
+
+Le succÃ¨s du package (pour les utilisateurs R) rÃ©side dans : 
+
+* sa facilitÃ© d'Ã©criture : aucune compÃ©tence en dÃ©veloppement web n'est requise
+
+* le potentiel de calcul et de modÃ©lisation de R est facilement mobilisable : il est aisÃ© de partir d'un script d'analyse R pour en rÃ©aliser une application
+
+* les applications sont publiÃ©es en local ou sur les internets via un serveur shiny
+
+
+# un exemple d'application Shiny en ligne
+
+# Le principe de fonctionnement d'une application Shiny 
+
+Une application Shiny contient 2 fichiers : 
+
+* ui.R pour "user interface" : ce fichier dÃ©finit l'apparence de la page web et les inputs
+
+* server.R : ce fichier explique comment, cÃ´tÃ© serveur, R doit se comporter et quels calculs il doit rÃ©aliser Ã  renvoyer sous forme d'outputs en fonction du comportement utilisateur
+
+Nota Bene : parfois on trouve seulement un seul fichier nommÃ© app.R qui contient l'ui et le serveur sous forme d'objets R et l'application est lancÃ©e via l'instruction `shinyApp(ui,server)`
+
+# Votre premiÃ¨re application Shiny....
+
+## ... vue de l'extÃ©rieur
+
+Dans RStudio, 
+
+File > New File > Shiny Web App
+
+![](creer_app_shiny.png)
+
+* donner un nom Ã  votre application  
+
+* choisir multiple file pour sÃ©parer les dÃ©velopements cÃ´tÃ© UI du cÃ´tÃ© serveur
+
+* choisir une adresse oÃ¹ positionner le projet
+
+
+Un fois le projet crÃ©Ã©, cliquez sur le bouton "Run app" ou exÃ©cutez `runApp('nom_de_lapplication')`!
+
+![](run_app.png)
+
+## ... et de l'intÃ©rieur : 
+
+![](communication.jpg)
+
+Dans sa version "unique file", le template d'une application Shiny est de la forme : 
+
+```{r, eval = FALSE}
+
+library(shiny)
+
+ui <- fluidPage()
+
+server <- function(input, output) {}
+
+shinyApp(ui = ui, server = server)
+```
+
+
+# Les fonctions shiny cÃ´tÃ© UI 
+
+2 types de fonctions : xInput et xOutput
+
+Ces deux grandes familles de fonctions s'intÃ©ressent aux inputs que l'utilisateur va vouloir passer au serveur et les output que le serveur lui restituera.
+
+## les diffÃ©rents inputs 
+
+### un chiffre ou une plage de chiffres
+
+A saisir : 
+
+```{r}
+numericInput(inputId = "Numeric", label = "Choisissez un nombre entre 0 et 100",
+value = 50, min = 0, max = 100, step = 10)
+```
+
+ou sous forme de slider : 
+
+```{r}
+sliderInput("slider", "Nombre :",
+    min = 0, max = 1000, value = 500)
+```
+
+```{r}
+sliderInput("slider", "Nombre :",
+    min = 0, max = 1000, value = c(100,300))
+```
+
+
+### du texte
+
+```{r}
+textInput(inputId = "texte", label = "Saisissez du texte", value = "exemple")
+```
+
+
+```{r}
+textAreaInput(inputId = "texte", label = "Une plus grosse boÃ®te de texte")
+```
+
+### une liste
+
+Avec un choix unique...
+```{r}
+selectInput(inputId = "idSelect", label = "Choisissez: ",
+            selected = 3,
+            choices = c("choix 1" = 1, "choix 2" = 2, "choix 3" = 3))
+```
+
+ou Ã  choix multiples : 
+
+```{r}
+selectInput(inputId = "idSelect", label = "Choisissez: ",
+            selected = 3,
+            multiple = TRUE,
+            choices = c("choix 1" = 1, "choix 2" = 2, "choix 3" = 3))
+```
+
+### les checkbox simples
+
+```{r}
+checkboxInput(inputId = "check1", label = "Cochez (ou pas): ", value = TRUE)
+```
+
+### les checkbox multiples
+
+```{r}
+checkboxGroupInput(inputId = "checkmultiple", label = "Cochez (ou pas)", choices = c("check 1", "check 2", "check 3", "check 4"),selected = "check 1",inline = TRUE)
+```
+
+
+### les dates
+
+```{r}
+dateInput(inputId = "ladate", label = "Une date",
+          value = Sys.Date()-10,
+          format = "dd/mm/yy",
+          language = "fr",
+          startview = "year", 
+          weekstart = 1)
+```
+
+ou une plage de temps : 
+
+```{r}
+dateRangeInput(inputId = "plagedate", label = "Une plage de temps : ", language = "fr")
+```
+
+### un fichier 
+
+```{r}
+fileInput(inputId = "fichier_importe", label = "Fichier Ã  importer", multiple = FALSE, accept = c("text/csv",
+          "text/comma-separated-values,text/plain",
+          ".csv"))
+```
+
+### une action via un bouton
+
+```{r}
+actionButton(inputId = "idActionButton", label = "Il clique Ã  gauche")
+```
+
+FYI : la liste des fonctions qui finissent par Input dans le package Shiny : 
+
+```{r}
+ls('package:shiny', pattern = "Input$")
+```
+
+## les diffÃ©rents outputs :
+
+```{r}
+htmlOutput(outputId = "renduhtml")
+```
+
+```{r}
+imageOutput(outputId = "image")
+```
+
+```{r}
+plotOutput(outputId = "graphe")
+```
+
+```{r}
+tableOutput(outputId = "table1")
+```
+
+```{r}
+dataTableOutput(outputId ="table2")
+```
+
+```{r}
+textOutput(outputId = "texte")
+```
+
+```{r}
+verbatimTextOutput(outputId = "untextepluslong")
+```
+
+
+```{r}
+uiOutput(outputId = "unelementui")
+```
+
+FYI : la liste des fonctions qui finissent par Output dans le package Shiny :
+
+```{r}
+ls('package:shiny', pattern = "Output$")
+```
+
+# Les fonctions shiny cÃ´tÃ© serveur
+
+Le serveur assemble les inputs pour les restituer Ã  l'utilisateur sous forme d'output. L'art de faire du Shiny consiste Ã  rÃ©aliser ce montage cÃ´tÃ© serveur. A cet effet, 3 rÃ¨gles Ã  observer impÃ©rativement pour ne pas avoir d'ennuis : 
+
+1. Les objets Ã  afficher dans les fonctions *Output cÃ´tÃ© UI devront Ãªtre Ã©crite sous la forme `output$x` cÃ´tÃ© serveur : 
+
+Exemple : 
+```{r, eval=FALSE}
+ui <- fluidPage(
+  plotOutput("unplot")
+)
+
+server <- function(input, output) {
+  output$unplot <- # du code R pour faire le plot en question)
+}
+
+shinyApp(ui = ui, server = server)
+```
+
+2. DÃ¨s lors qu'on utilise une instruction du type `output$x <-`dans le serveur, l'instruction en question est nÃ©cessairement suivie d'une fonction `render*()`
+
+L'exemple devient donc : 
+
+Exemple : 
+```{r, eval = FALSE}
+ui <- fluidPage(
+  plotOutput("unplot")
+)
+
+server <- function(input, output) {
+  output$unplot <- renderPlot({# du code R})
+}
+
+shinyApp(ui = ui, server = server)
+```
+
+Nota Bene : attention aux accolades Ã  l'intÃ©rieur de cette famille de fonctions
+
+
+A disposition, la liste de toutes les fonctions `render*()`
+```{r}
+ls('package:shiny', pattern = "^render")
+```
+
+Elles fonctionnent *main dans la main* avec les fonctions `*Output()` de l'UI. 
+
+
+3. Pour appeler des inputs de l'UI dans le serveur afin de programmer les fonctions `render*()`, la syntaxe est de la forme : `input$x`
+
+
+```{r, eval = FALSE}
+ui <- fluidPage(
+  # l'input fourni par l'utilisateur est un nombre entier renseignÃ© par sliderInput() : 
+  sliderInput(inputId = "classes", "Nombre de classes", min = 1, 
+              max =50, value = 30),
+  # l'output retournÃ© Ã  l'utilisateur est un plot nommÃ© "unplot"
+  plotOutput("unplot")
+)
+
+server <- function(input, output) {
+  output$unplot <- renderPlot({ # l'objet unplot est transmis Ã  plotOutput via output$unplot
+    
+    #selection de la variable dans le jeu de donnÃ©es
+    x    <- faithful[, 2]
+    
+    #  dÃ©finition du nombre de classes avec l'input
+    classes <- seq(min(x), max(x), length.out = input$classes + 1)
+    
+    # construction du plot 
+    hist(x, breaks = classes, col = 'darkgray', border = 'white', 
+         main = "Histogramme des temps d'attente entre 2 Ã©ruptions du geyser 'Old Faithful' ")
+  })
+}
+
+shinyApp(ui = ui, server = server)
+```
+
+
+Exercice 1 :
+
+Ajouter une boÃ®te de texte sous le graphique qui nous renseigne sur le temps moyen d'attente entre 2 Ã©ruptions.
+
+# De la rÃ©activitÃ© des fonctions cÃ´tÃ© serveur...
+
+Les fonctions `render*()` ont une rÃ©activitÃ© immÃ©diate. C'est Ã  dire qu'Ã  chaque couple input\$inputId <-> output\$outputId la mise Ã  jour est instantanÃ©e dÃ¨s lors que input\$inputId change de valeur.
+
+Les valeurs rÃ©actives marchent de pair avec les fonctions rÃ©actives. 
+
+DÃ¨s que l'input change, les valeurs dites "rÃ©actives" influent sur les fonctions qui utilisent pour leur notifier que les paramÃ¨tres qu'ils utilisent sont invalides : tous les blocs de code qui contiennent l'input sont donc (rÃ©)Ã©valuÃ©s. Les fonctions rÃ©actives mettent Ã  jour les output$outputId
+
+Les inputs sont en fait une liste de valeurs rÃ©actives et il n'est possible d'appeler des ces valeurs que dans des fonctions rÃ©actives : les valeurs rÃ©actives notifient les fonctions rÃ©actives qui y rÃ©pondent.
+
+1. Quel code est utilisÃ© par la fonction rÃ©active ? 
+2. A quelle valeur rÃ©active l'objet crÃ©Ã© par la fonction rÃ©active rÃ©pond ? 
+
+## Restituer avec les fonctions `render*()`
+
+Chaque fois que les inputs utilisÃ©s dans une fonction `render*()` changent c'est l'intÃ©gralitÃ© du bloc de code qui est (rÃ©)Ã©valuÃ©.
+
+Question : 
+
+Dans l'exemple prÃ©cÃ©dent, le calcul de la moyenne est-il recalculÃ© Ã  un moment ? 
+
+Exercice 2 : 
+
+Ajouter Ã  l'application prÃ©cÃ©dente un input qui serait du texte Ã  saisir et qui permettrait Ã  l'utilisateur de changer le titre du graphique
+
+## Modulariser avec les fonctions `reactive()`
+
+Les fonctions `reactive()` servent Ã  dÃ©couper les applications shiny en petits modules qui optimisent le flux de valeurs rÃ©actives et des fonctions associÃ©es
+
+Elle permettent de crÃ©er des objets, rÃ©actifs, liÃ©s Ã  un input qui seront utilisÃ©s Ã  plusieurs endroits de l'application.
+
+```{r, eval = FALSE}
+
+variable_a_reutiliser <- reactive({expression impliquant des inputs})
+...
+output$nom_de_loutput <- render*({fonction1(paramÃ¨tre = variable_a_reutiliser())})
+
+output$nom_d_un_autre_output <- render*({fonction2(paramÃ¨tre = variable_a_reutiliser())})
+```
+
+Nota Bene : attention aux parenthÃ¨ses de la fonction rÃ©active nouvellement gÃ©nÃ©rÃ©e. En cas d'oubli, il se passe ce qui se passe quand on demande Ã  R une fonction sans parenthÃ¨ses == l'affichage du code source
+
+Exercice 3 : 
+
+Ajouter un bloc de texte sous le graphique qui compte le nombre de caractÃ¨res contenus dans le titre du graphique avec une fonction `reactive()`
+
+## Temporiser avec `isolate()`
+
+`isolate()` est une fonction qui retourne une valeur non rÃ©active. 
+
+La syntaxe est semblable Ã  celle de `reactive*()` : 
+```{r, eval = FALSE}
+isolate({expression impliquant des inputs})
+```
+Avec des parenthÃ¨ses car il s'agit d'une fonction et des accolades car il s'agit d'une expression R.
+
+Au lancement de l'application, la valeur prise par le rÃ©sultat de la fonction `isolate()` est celle qui correspond Ã  l'Ã©valuation de l'expression entre accolades avec les inputs correspondants. 
+
+Si les inputs changent au sein des accolades, l'output n'est pas mis Ã  jour. 
+Par contre, et c'est tout son intÃ©rÃªt, si `isolate` est au sein d'un bloc de code qui contient des variables rÃ©actives, chaque fois que ces valeurs changent, le bloc est rÃ©Ã©valuÃ©, et l'expression au sein d'`isolate()` remise Ã  jour en quelque sorte. 
+
+`isolate()` est un moyen de faire un refresh "local", conditionnÃ© par des variables environnantes qui elles sont rÃ©actives.
+
+Exercice 4 : 
+Utiliser `isolate()` pour isoler la rÃ©activitÃ© de la mise Ã  jour du titre du graphique : le comptage du nombre de caractÃ¨res soit rester rÃ©actif, mais la mise Ã  jour du titre ne doit se faire que quand le slider est modifiÃ©.
+
+## DÃ©clencher du code avec des Ã©vÃ©nements :  `observeEvent()` et `observe()`
+
+Ces deux fonctions ont une syntaxe diffÃ©rente pour une rÃ©action identique : 
+
+```{r, eval = FALSE}
+
+observe({expression Ã  Ã©valuer liÃ©e Ã  un input})
+
+observeEvent(input$evenement, {expression Ã  Ã©valuer liÃ©e Ã  l'input "evemenent"})
+
+```
+
+Ces fonctions attendent des interactions avec l'utilisateur, des "observations" au niveau des inputs avant d'exÃ©cuter les expressions entre accolades. 
+
+Il est possible d'assigner leur valeur Ã  des outputs pour que ces derniers ne se (rÃ©)exÃ©cute que quand l'utilisateur le demande et non pas sous forme d'un refresh instantanÃ© comme pour les valeurs rÃ©actives au sein des fonctions `render*()`
+
+```{r, eval = FALSE}
+ui <- fluidPage(
+  sliderInput(inputId = "num", 
+    label = "Choisir un nombre",
+    min = 1, max = 100, value = 25),
+  actionButton(inputId = "go", 
+    label = "Renvoyer la valeur prise par le bouton dans la console")
+)
+
+server <- function(input, output) {
+
+  observeEvent(input$go, {
+    print(as.numeric(input$num))
+  })
+}
+
+shinyApp(ui = ui, server = server)
+```
+
+Souvent, les Ã©vÃ©nements qui dÃ©clenchent du code ailleurs dans l'application sont des `actionButton()` comme dans l'exemple ci-dessus ou des 
+
+## Temporiser du code avec `eventReactive()`
+
+Dans le flux de rÃ©activitÃ© et de mise Ã  jour des valeurs du cÃ´tÃ© serveur et UI, il est parfois intÃ©ressant de temporiser ce flux en laissant la main au client putÃ´t qu'en faisant les refresh instantanÃ©ment, Ã  l'image de `reactive()`
+
+La fonction qui qui permet de conditionner la chaÃ®ne de rÃ©activitÃ© Ã  un Ã©vÃ©nement est la fonction `eventReactive()`
+
+Sa syntaxe est de la forme : 
+
+```{r, eval=FALSE}
+eventReactive(input qui donne le go, {expression Ã  Ã©valuer aprÃ¨s le go})
+```
+
+Comme pour les fonctions `reactive()`, la fonctions `eventReactive()` renvoie une fonction et invite donc Ã  utiliser les parenthÃ¨ses Ã  chaque fois qu'on souhaite s'y rÃ©fÃ©rer : 
+
+```{r, eval = FALSE}
+
+variable_a_reutiliser <- eventReactive(input qui donne le go, {expression impliquant des inputs})
+...
+output$nom_de_loutput <- render*({fonction1(paramÃ¨tre = variable_a_reutiliser())})
+
+output$nom_d_un_autre_output <- render*({fonction2(paramÃ¨tre = variable_a_reutiliser())})
+```
+
+
+Exercice 5:
+
+A partir d'un template vide, crÃ©er une application qui utilise la fonction `actionButton` comme dÃ©clencheur Ã  afficher un chiffre au hasard compris entre 1 et 100 (fonction `sample`).
+
+Exercice 6:
+
+Ajouter Ã  votre application un bouton de mise Ã  jour du titre du graphique et du nombre de caractÃ¨res qu'il contient au moyen d'un `actionButton` dÃ¨s lors que l'utilisateur juge sa saisie terminÃ©e
+
+## En rÃ©sumÃ©
+
+un schÃ©ma rÃ©capitulatif : 
+![](reactivite.png)
+
+Un aide-mÃ©moire : 
+<https://www.rstudio.com/wp-content/uploads/2015/08/shiny-french-cheatsheet.pdf>
+
+# Customiser l'interface cÃ´tÃ© UI ?
+
+## en utilisant tout ce que vous savez d'html 5 via les `tags$`
+
+Les `tags` sont la liste de fonctions R Ã  disposition pour Ã©crire du html depuis R : 
+
+```{r}
+library(magrittr)
+names(tags) %>% head(50)
+```
+
+Ainsi...
+```{r}
+tags$blockquote("une citation")
+```
+...est une fonction qui insÃ¨re les balises correspondantes
+
+Il est donc possible de rajouter tous les Ã©lÃ©ments statiques nÃ©cessaires Ã  la construction de l'UI avec les `tags` simplement en les ajoutant dans l'ui : 
+
+```{r, eval = FALSE}
+ui <- fluidPage(
+  tags$h1("Titre h1"), 
+  tags$p(tags$code("I <3 R")), 
+  tags$p(tags$code("I ",tags$strong("really"), "<3 R"))
+)
+
+server <- function(input, output) {
+}
+
+shinyApp(ui = ui, server = server)
+
+```
+
+## en recyclant du HTML
+
+Avec la fonction `HTML()` !
+
+```{r, eval= FALSE}
+ui <- fluidPage(
+HTML("<p>
+  <code>
+    I 
+    <strong>really</strong>
+    &lt;3 R
+  </code>
+</p>")
+)
+
+server <- function(input, output) {
+}
+
+shinyApp(ui = ui, server = server)
+```
+
+## en utilisant les fonctions natives Shiny 
+
+Pour dÃ©couper la page avec des `div` : 
+```{r}
+fluidRow()
+column(3)
+```
+
+```{r}
+fluidRow("Ligne",
+  column(3, "Colonne 1"), 
+  column(3, "Colonne 2")
+)
+```
+
+```{r, eval = FALSE}
+ui <- fluidPage(
+  fluidRow("Ligne",
+           column(width = 3, "Colonne 1", 
+                  sliderInput(inputId = "slider", label = "slider", 
+                              min=1, max = 5, value = 2)), 
+           column(width = 3, "Colonne 2",
+                  sliderInput(inputId = "slider", label = "slider", 
+                              min=1, max = 5, value = 2))
+  )
+)
+  
+  server <- function(input, output) {
+  }
+  
+shinyApp(ui = ui, server = server)
+```
+
+ou avec des fonctions `*panel` : 
+```{r}
+ls('package:shiny', pattern = "Panel$")
+```
+
+La fonction classiquement utilisÃ©e Ã©tant `sidebarPanel` couplÃ©e Ã  `mainPanel`
+
+
+```{r, eval = FALSE}
+ui <- fluidPage(
+  mainPanel(
+    fluidRow("Ligne",wellPanel(
+      column(width = 3, "Colonne 1", 
+             sliderInput(inputId = "slider", label = "slider", 
+                         min=1, max = 5, value = 2))), 
+      column(width = 3, "Colonne 2",
+             sliderInput(inputId = "slider", label = "slider", 
+                         min=1, max = 5, value = 2))
+    )
+  )
+)
+
+server <- function(input, output) {
+}
+
+shinyApp(ui = ui, server = server)
+```
+
+
+## en crÃ©ant un rÃ©pertoire dÃ©diÃ© aux aspects UI
+
+DÃ¨s lors que l'on s'oriente vers une customisation avancÃ©e de l'apparence de la page, il est de bon ton de crÃ©er un rÃ©pertoire Ã  la racine de `app.R` ou `ui.R` et `server.R` afin d'y hoster la boÃ®te Ã  outils nÃ©cessaire au design
+
+Ce rÃ©pertoire **doit** s'appeler `www` : 
+
+```{r, eval = FALSE}
+dir.create("www")
+```
+
+![](www.png)
+C'est dans ce rÃ©pertoire que viendra piocher le navigateur les images et le teplate css
+
+## en utilisant un template css
+...et en le dÃ©posant dans le rÃ©pertoire `www`
+
+
+Exercice pour la prochaine fois : 
+RÃ©aliser une application Shiny de votre package de SEO !
+
+
+
+
+
+
