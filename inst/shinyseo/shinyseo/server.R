@@ -13,6 +13,7 @@ shinyServer(function(input, output, session) {
   zoneText <- eventReactive(input$go, {input$zone})
   keyword_list <- eventReactive(input$go, {input$keywords_input})
   website_history <- eventReactive(input$showKeywordList, { input$configForUrl })
+  keyword_to_append <- eventReactive(input$addKeywordForUrl, { SEO::word_list_to_bdd(site_url = website_history(), word_list = input$keywordToAppendForUrl, append = TRUE) })
 
   #Historique TAB
   output$urlHistory <- renderTable(SEO::list_url_base(), striped = TRUE, bordered = TRUE, colnames = FALSE)
@@ -23,7 +24,7 @@ shinyServer(function(input, output, session) {
       wordList <- strsplit(x = keyword_list(), split = "\n")[[1]]
       result <- SEO::daily_run(string(), wordList, 30)
 
-      #output$keywords_list <- renderTable(wordList, striped = TRUE, hover = TRUE, bordered = TRUE, colnames = FALSE)
+      output$keywords_list <- renderTable(wordList, striped = TRUE, hover = TRUE, bordered = TRUE, colnames = FALSE)
       cat("Recherche journalière effectuée")
     }
   })
@@ -53,8 +54,11 @@ shinyServer(function(input, output, session) {
 
   # Configuration des sites (mots clefs a rechercher)
   output$keywordsForUrlDataTable <- renderDataTable(expr = SEO::bdd_to_word_list( website_history() ) )
-
-
+  # Reset word_list
+  observeEvent(input$resetKeywordList, {
+    SEO::word_list_to_bdd(site_url = website_history(), word_list = "", append = FALSE)
+    website_history()
+  })
 
 })
 

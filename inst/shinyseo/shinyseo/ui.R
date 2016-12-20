@@ -44,13 +44,21 @@ fluidPage(
                  tableOutput("urlHistory")
                )),
       tabPanel("Configuration",
-               fluidPage(
-                 titlePanel("Configuration des sites"),
-                 selectInput(inputId = "configForUrl", label = "Choisissez: ", choices = SEO::list_url_base()),
-                 actionButton(inputId = "showKeywordList", "Envoyer"),
-                 hr(),
-                 dataTableOutput("keywordsForUrlDataTable")
-               ))
+          fluidPage(
+            titlePanel("Configuration des sites"),
+            mainPanel(
+              dataTableOutput("keywordsForUrlDataTable")
+            ),
+            sidebarPanel(
+              selectInput(inputId = "configForUrl", label = "Choisissez: ", choices = SEO::list_url_base()),
+              actionButton(inputId = "showKeywordList", "Envoyer"),
+              actionButton(inputId = "resetKeywordList", "Reset"),
+              hr(),
+              textAreaInput(inputId = "keywordToAppendForUrl", label = "Sur quel mot clef voulez-vous chercher le site ? Une expression par ligne"),
+              actionButton(inputId = "addKeywordForUrl", "Ajouter")
+            )
+          )
+      )
     )
   )
 )
