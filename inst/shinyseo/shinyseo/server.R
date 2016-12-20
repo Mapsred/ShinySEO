@@ -54,14 +54,15 @@ shinyServer(function(input, output, session) {
 
   # Configuration des sites (mots clefs a rechercher)
   output$keywordsForUrlDataTable <- renderDataTable(expr = SEO::bdd_to_word_list( website_history() ) )
-  # Reset word_list
+  # Mettre a zero la liste de mots clef a rechercher
   observeEvent(input$resetKeywordList, {
     SEO::word_list_to_bdd(site_url = website_history(), word_list = "", append = FALSE)
     website_history()
   })
-
+  # Ajouter des mots clefs pour rechercher le site
   observeEvent(input$addKeywordForUrl, {
-    SEO::word_list_to_bdd(site_url = website_history(), word_list = input$keywordToAppendForUrl, append = TRUE)
+    wordList <- strsplit(x = input$keywordToAppendForUrl, split = "\n")[[1]]
+    SEO::word_list_to_bdd(site_url = website_history(), word_list = wordList, append = TRUE)
   })
 
 })
