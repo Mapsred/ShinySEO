@@ -42,6 +42,14 @@ fluidPage(
                  titlePanel("Data Analystic - Historique"),
                  h3("Sites recherchés"),
                  tableOutput("urlHistory")
+               )),
+      tabPanel("Configuration",
+               fluidPage(
+                 titlePanel("Configuration des sites"),
+                 selectInput(inputId = "configForUrl", label = "Choisissez: ", choices = SEO::list_url_base()),
+                 actionButton(inputId = "showKeywordList", "Envoyer"),
+                 hr(),
+                 dataTableOutput("keywordsForUrlDataTable")
                ))
     )
   )

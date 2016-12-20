@@ -12,6 +12,7 @@ shinyServer(function(input, output, session) {
 
   zoneText <- eventReactive(input$go, {input$zone})
   keyword_list <- eventReactive(input$go, {input$keywords_input})
+  website_history <- eventReactive(input$showKeywordList, { input$configForUrl })
 
   #Historique TAB
   output$urlHistory <- renderTable(SEO::list_url_base(), striped = TRUE, bordered = TRUE, colnames = FALSE)
@@ -29,6 +30,9 @@ shinyServer(function(input, output, session) {
 
   #Sommaire TAB
   output$zone <- renderPrint({
+    if (summaryUrl() != "") {
+      output$keywordsForUrlDataTable <- renderDataTable(expr = SEO::bdd_to_word_list(summaryUrl()))
+    }
     #summaryUrl and summaryWord required
     if (summaryUrl() != "" && summaryWord() != "") {
       output$titleSummary <- renderText(HTML(sprintf("<h3>Évolution du mot clé <i>%s</i></h3>", summaryWord())))
@@ -46,6 +50,9 @@ shinyServer(function(input, output, session) {
       output$summaryGlobalDataTable <- renderDataTable(data <- SEO::compare_position(summaryUrl()), escape=FALSE)
     }
   })
+
+  # Configuration des sites (mots clefs a rechercher)
+  output$keywordsForUrlDataTable <- renderDataTable(expr = SEO::bdd_to_word_list( website_history() ) )
 
 
 
