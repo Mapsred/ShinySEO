@@ -13,7 +13,7 @@ shinyServer(function(input, output, session) {
   zoneText <- eventReactive(input$go, {input$zone})
   keyword_list <- eventReactive(input$go, {input$keywords_input})
   website_history <- eventReactive(input$showKeywordList, { input$configForUrl })
-  keyword_to_append <- eventReactive(input$addKeywordForUrl, { SEO::word_list_to_bdd(site_url = website_history(), word_list = input$keywordToAppendForUrl, append = TRUE) })
+#  keyword_to_append <- eventReactive(input$addKeywordForUrl, { SEO::word_list_to_bdd(site_url = website_history(), word_list = input$keywordToAppendForUrl, append = TRUE) })
 
   #Historique TAB
   output$urlHistory <- renderTable(SEO::list_url_base(), striped = TRUE, bordered = TRUE, colnames = FALSE)
@@ -58,6 +58,10 @@ shinyServer(function(input, output, session) {
   observeEvent(input$resetKeywordList, {
     SEO::word_list_to_bdd(site_url = website_history(), word_list = "", append = FALSE)
     website_history()
+  })
+
+  observeEvent(input$addKeywordForUrl, {
+    SEO::word_list_to_bdd(site_url = website_history(), word_list = input$keywordToAppendForUrl, append = TRUE)
   })
 
 })
