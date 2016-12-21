@@ -38,20 +38,17 @@ config_to_bdd <- function(site_url ,max = 100, timer = 10,validite=24*60*60,
 #' @importFrom DBI dbExistsTable dbSendQuery dbRemoveTable
 #' @export
 
-word_list_to_bdd <- function(site_url ,word_list,
-                             bdd=file.path(find.package("SEO"), "mabase.sqlite"),append=FALSE) {
-
+word_list_to_bdd <- function(site_url ,word_list, bdd=file.path(find.package("SEO"), "mabase.sqlite"),append=FALSE) {
 
   if (append){
-
     # ici on recupere les mot pour les rajouter a ceux envoyés
-
+    word_list <- c(word_list, unlist( bdd_to_word_list(site_url = site_url) ) )
   }
 
-  word_list <- sort(word_list)
+  wL <- sort(word_list)
 
   my_db <- src_sqlite(bdd, create = TRUE)
-  bddtmp_word_list <- data.frame(word = word_list)
+  bddtmp_word_list <- data.frame(word = wL)
   nom_base_word_list <- paste0("words__",gsub("\\.", "_", site_url))
 
   # on va effacer la base si elle existe
